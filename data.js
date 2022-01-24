@@ -556,7 +556,8 @@ const users = [
     "username": "Fig2",
     "email": "fig2@gmail.com"
   }
-],
+];
+
 const participants = [
   {
     "id": 1,
