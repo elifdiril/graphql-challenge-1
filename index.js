@@ -14,7 +14,7 @@ type Event {
     user_id: Int!
   }
 
-  type locations {
+  type Location {
     id: ID!
     name: String!
     desc: String!
@@ -22,17 +22,32 @@ type Event {
     lng: Float!
   }
 
-  type users {
+  type User {
     id: ID!
     username: String!
     email: String!
   }
 
-  type participants {
+  type Participant {
     id: ID
     user_id: Int!
     event_id: Int!
   }
+
+  type Query {
+    events: [Event!]
+    event(id: ID): Event!
+
+    locations: [Location!]
+    location(id: ID): Location!
+
+    users: [User!]
+    user(id: ID): User!
+    
+    participants: [Participant!]
+    participant: Participant!
+  }
+
 `;
 
 const resolvers = {
