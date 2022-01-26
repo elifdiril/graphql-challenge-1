@@ -70,11 +70,36 @@ type Event {
     email: String
   }
 
+  input inputCreateEvent {
+    title: String!
+    desc: String!
+    date: String!
+    from: String!
+    to: String!
+    location_id: String!
+    user_id: String!
+  }
+
+  input inputUpdateEvent {
+    title: String
+    desc: String
+    date: String
+    from: String
+    to: String
+    location_id: String
+    user_id: String
+  }
+
   type Mutation {
     createUser(data: inputCreateUser!): User!
     updateUser(id: ID!, data: inputUpdateUser!): User!
     deleteUser(id: ID!): User!
     deleteAllUsers: DeleteAll!
+
+    createEvent(data: inputCreateEvent!): Event!
+    updateEvent(id: ID!, data: inputUpdateEvent!): Event!
+    deleteEvent(id: ID!): Event!
+    deleteAllEvents: DeleteAll!
 
   }
 
@@ -82,6 +107,7 @@ type Event {
 
 const resolvers = {
     Mutation: {
+        //user
         createUser: (parent, { data }) => {
             const user = {
                 id: nanoid(),
@@ -125,6 +151,55 @@ const resolvers = {
             const count = users.length;
 
             users.splice(0, count);
+
+            return { count };
+        },
+
+        //event
+
+        createEvent: (parent, { data }) => {
+            const event = {
+                id: nanoid(),
+                ...data
+            };
+
+            events.push(event);
+
+            return event;
+        },
+
+        updateEvent: (parent, { id, data }) => {
+            const event_index = events.findIndex(event => event.id == id);
+
+            if (event_index == -1) {
+                throw new Error("Event not found!");
+            }
+
+            const updatedEvent = (events[event_index] = {
+                ...events[event_index],
+                ...data
+            });
+
+            return updatedEvent;
+        },
+
+        deleteEvent: (parent, { id }) => {
+            const event_index = events.findIndex(event => event.id == id);
+
+            if (event_index == -1) {
+                throw new Error("Event not found!");
+            }
+
+            const deletedEvent = events[event_index];
+            events.splice(event_index, 1);
+
+            return deletedEvent;
+        },
+
+        deleteAllEvents: () => {
+            const count = events.length;
+
+            events.splice(0, count);
 
             return { count };
         }
