@@ -1,24 +1,26 @@
 const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-server-core');
 const { ApolloServer, gql } = require('apollo-server');
 const { events, participants, users, locations } = require('./data');
+const { nanoid } = require('nanoid');
 
 const typeDefs = gql`
+
 type Event {
-    id: Int!
+    id: ID!
     title: String!
     desc: String!
     date: String!
     from: String!
     to: String!
-    location_id: Int!
-    user_id: Int!
+    location_id: String!
+    user_id: String!
     user: User!
     location: Location!
     participants: [Participant!]!
   }
 
   type Location {
-    id: Int!
+    id: ID!
     name: String!
     desc: String!
     lat: Float!
@@ -26,37 +28,109 @@ type Event {
   }
 
   type User {
-    id: Int!
+    id: ID!
     username: String!
     email: String!
     events: [Event!]!
   }
 
   type Participant {
-    id: Int!
-    user_id: Int!
+    id: ID!
+    user_id: String!
     user: User!
-    event_id: Int!
+    event_id: String!
     event: Event!
   }
 
   type Query {
     events: [Event!]
-    event(id: Int!): Event
+    event(id: ID!): Event
 
     locations: [Location!]
-    location(id: Int!): Location
+    location(id: ID!): Location
 
     users: [User!]
-    user(id: Int!): User!
+    user(id: ID!): User
     
     participants: [Participant!]
-    participant(id: Int!): Participant!
+    participant(id: ID!): Participant
+  }
+
+  type DeleteAll{
+      count: Int!
+  }
+
+  input inputCreateUser {
+    username: String!
+    email: String!
+  }
+
+  input inputUpdateUser {
+    username: String
+    email: String
+  }
+
+  type Mutation {
+    createUser(data: inputCreateUser!): User!
+    updateUser(id: ID!, data: inputUpdateUser!): User!
+    deleteUser(id: ID!): User!
+    deleteAllUsers: DeleteAll!
+
   }
 
 `;
 
 const resolvers = {
+    Mutation: {
+        createUser: (parent, { data }) => {
+            const user = {
+                id: nanoid(),
+                ...data
+            };
+
+            users.push(user);
+
+            return user;
+        },
+
+        updateUser: (parent, { id, data }) => {
+            const user_index = users.findIndex(user => user.id == id);
+
+            if (user_index == -1) {
+                throw new Error("User not found!");
+            }
+
+            const updatedUser = (users[user_index] = {
+                ...users[user_index],
+                ...data
+            });
+
+            return updatedUser;
+        },
+
+        deleteUser: (parent, { id }) => {
+            const user_index = users.findIndex(user => user.id == id);
+
+            if (user_index == -1) {
+                throw new Error("User not found!");
+            }
+
+            const deletedUser = users[user_index];
+            users.splice(user_index, 1);
+
+            return deletedUser;
+        },
+
+        deleteAllUsers: () => {
+            const count = users.length;
+
+            users.splice(0, count);
+
+            return { count };
+        }
+
+    },
+
     Query: {
         events: () => events,
         event: (parent, args) => {
@@ -78,7 +152,7 @@ const resolvers = {
 
         participants: () => participants,
         participant: (parent, args) => {
-            const data = participants.find((participant) => participant.id === args.id);
+            const data = participants.find((participant) => participant.id == args.id);
             return data;
         }
     },
