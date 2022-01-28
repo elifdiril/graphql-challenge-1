@@ -1,10 +1,8 @@
-const { ApolloServerPluginLandingPageGraphQLPlayground } = require('apollo-server-core');
-const { ApolloServer, gql } = require('apollo-server');
+const { GraphQLServer, PubSub, withFilter } = require('graphql-yoga');
 const { events, participants, users, locations } = require('./data');
 const { nanoid } = require('nanoid');
 
-const typeDefs = gql`
-
+const typeDefs = `
 type Event {
     id: ID!
     title: String!
@@ -103,23 +101,48 @@ type Event {
 
   }
 
+  type Subscription {
+    userCreated(id: ID): User!
+    eventCreated(id: ID): Event!
+    participantAdded(id: ID): Participant!
+  }
+
 `;
 
 const resolvers = {
+    Subscription: {
+        userCreated: {
+            subscribe: withFilter((_, __, { pubsub }) => pubsub.asyncIterator('userCreated'),
+                (payload, variables) => {
+                    console.log(payload, variables)
+                    return variables.id ? (payload.userCreated.id === variables.id) : true;
+                })
+        },
+
+        eventCreated: {
+            subscribe: withFilter((_, __, { pubsub }) => pubsub.asyncIterator('eventCreated'),
+                (payload, variables) => {
+                    console.log(payload, variables)
+                    return variables.id ? (payload.eventCreated.id === variables.id) : true;
+                })
+        },
+    },
+
     Mutation: {
         //user
-        createUser: (parent, { data }) => {
+        createUser: (_, { data }, { pubsub }) => {
             const user = {
                 id: nanoid(),
                 ...data
             };
 
             users.push(user);
+            pubsub.publish('userCreated', { userCreated: user });
 
             return user;
         },
 
-        updateUser: (parent, { id, data }) => {
+        updateUser: (_, { id, data }) => {
             const user_index = users.findIndex(user => user.id == id);
 
             if (user_index == -1) {
@@ -134,7 +157,7 @@ const resolvers = {
             return updatedUser;
         },
 
-        deleteUser: (parent, { id }) => {
+        deleteUser: (_, { id }) => {
             const user_index = users.findIndex(user => user.id == id);
 
             if (user_index == -1) {
@@ -157,18 +180,19 @@ const resolvers = {
 
         //event
 
-        createEvent: (parent, { data }) => {
+        createEvent: (_, { data }, { pubsub }) => {
             const event = {
                 id: nanoid(),
                 ...data
             };
 
             events.push(event);
+            pubsub.publish('eventCreated', { eventCreated: event });
 
             return event;
         },
 
-        updateEvent: (parent, { id, data }) => {
+        updateEvent: (_, { id, data }) => {
             const event_index = events.findIndex(event => event.id == id);
 
             if (event_index == -1) {
@@ -183,7 +207,7 @@ const resolvers = {
             return updatedEvent;
         },
 
-        deleteEvent: (parent, { id }) => {
+        deleteEvent: (_, { id }) => {
             const event_index = events.findIndex(event => event.id == id);
 
             if (event_index == -1) {
@@ -208,25 +232,25 @@ const resolvers = {
 
     Query: {
         events: () => events,
-        event: (parent, args) => {
+        event: (_, args) => {
             const data = events.find((event) => event.id === args.id);
             return data;
         },
 
         locations: () => locations,
-        location: (parent, args) => {
+        location: (_, args) => {
             const data = locations.find((location) => location.id === args.id);
             return data;
         },
 
         users: () => users,
-        user: (parent, args) => {
+        user: (_, args) => {
             const data = users.find((user) => user.id === args.id);
             return data;
         },
 
         participants: () => participants,
-        participant: (parent, args) => {
+        participant: (_, args) => {
             const data = participants.find((participant) => participant.id == args.id);
             return data;
         }
@@ -250,14 +274,7 @@ const resolvers = {
 };
 
 
-const server = new ApolloServer({
-    typeDefs,
-    resolvers,
-    plugins: [
-        ApolloServerPluginLandingPageGraphQLPlayground({
-            // options
-        })
-    ]
-});
+const pubsub = new PubSub();
+const server = new GraphQLServer({ typeDefs, resolvers, context: { pubsub } });
 
-server.listen().then(({ url }) => console.log(`Apollo server is up to ${url}`));
+server.start(() => console.log('Server is running on http://localhost:4000/'));
