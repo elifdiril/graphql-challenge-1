@@ -1,0 +1,20 @@
+type Participant {
+  id: ID!
+  user_id: String!
+  user: User!
+  event_id: String!
+  event: Event!
+}
+
+type Query {
+  participants: [Participant!]
+  participant(id: ID!): Participant
+}
+
+type DeleteAll {
+  count: Int!
+}
+
+type Subscription {
+  participantAdded(id: ID): Participant!
+}
