@@ -1,8 +1,9 @@
+import EventList from "./EventList/EventList";
 
 function App() {
   return (
     <div className="App">
-     sdf
+     <EventList/>
     </div>
   );
 }
