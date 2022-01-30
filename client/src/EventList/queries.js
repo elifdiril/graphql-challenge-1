@@ -10,3 +10,13 @@ export const GET_EVENTS = gql`
     }
   }
 `;
+
+export const EVENT_SUBSCRIPTION = gql`
+  subscription {
+    eventCreated {
+      title
+      desc
+      date
+    }
+  }
+`;
