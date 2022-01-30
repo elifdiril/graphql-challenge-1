@@ -6,6 +6,20 @@ export const GET_EVENT = gql`
       title
       desc
       date
+      user {
+        username
+        email
+      }
+      location {
+        name
+        lat
+        lng
+      }
+      participants {
+        user {
+          username
+        }
+      }
     }
   }
 `;
