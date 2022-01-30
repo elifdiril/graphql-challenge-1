@@ -1,0 +1,16 @@
+.eventList {
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.link{
+    color: rgba(0, 0, 0, 0.45);
+    font-size: 14px;
+    line-height: 1.5715;
+}
+
+.link:hover{
+    color:rgba(0, 0, 0, 0.75)
+}
