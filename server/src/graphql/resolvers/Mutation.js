@@ -3,15 +3,15 @@ import { nanoid } from "nanoid";
 export const Mutation = {
   //user
   createUser: (_, { data }, { pubsub, db }) => {
-    const user = {
+    const userCreated = {
       id: nanoid(),
       ...data,
     };
 
-    db.users.push(user);
-    pubsub.publish("userCreated", { userCreated: user });
+    db.users.push(userCreated);
+    pubsub.publish("userCreated", { userCreated });
 
-    return user;
+    return userCreated;
   },
 
   updateUser: (_, { id, data }, { db }) => {
@@ -52,15 +52,15 @@ export const Mutation = {
 
   //event
   createEvent: (_, { data }, { pubsub, db }) => {
-    const event = {
+    const eventCreated = {
       id: nanoid(),
       ...data,
     };
 
-    db.events.push(event);
-    pubsub.publish("eventCreated", { eventCreated: event });
+    db.events.push(eventCreated);
+    pubsub.publish("eventCreated", { eventCreated });
 
-    return event;
+    return eventCreated;
   },
 
   updateEvent: (_, { id, data }, { db }) => {
