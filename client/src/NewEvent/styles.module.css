@@ -1,0 +1,9 @@
+.form{
+    display: flex;
+    flex-direction: column;
+}
+
+.divider{
+    font-size: xx-large;
+    font-weight: bolder;
+}
