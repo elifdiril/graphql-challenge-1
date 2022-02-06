@@ -27,6 +27,7 @@ function NewEvent() {
 
       message.success("Event saved!", 4);
       history.push("/");
+      history.go(0);
     } catch (e) {
       console.log(e);
       message.error("Event not saved!", 8);
